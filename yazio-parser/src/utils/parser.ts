@@ -32,8 +32,19 @@ export const groupRowsByY = (bboxes: BBox[], yThreshold = 20): BBox[][] => {
   return rows;
 };
 
+export interface MetricDataset {
+  id: string;
+  name: string;
+  data: ParsedRow[];
+}
+
 // Known months to help identify date rows
-const MONTHS = ['january', 'february', 'march', 'april', 'may', 'june', 'july', 'august', 'september', 'october', 'november', 'december', 'jan', 'feb', 'mar', 'apr', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
+const MONTHS = [
+  'january', 'february', 'march', 'april', 'may', 'june', 'july', 'august', 'september', 'october', 'november', 'december',
+  'jan', 'feb', 'mar', 'apr', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec',
+  'янв', 'фев', 'мар', 'апр', 'мая', 'июн', 'июл', 'авг', 'сен', 'окт', 'ноя', 'дек',
+  'сегодня', 'вчера'
+];
 
 const isLikelyDate = (text: string) => {
   const lower = text.toLowerCase();
@@ -57,12 +68,24 @@ export const parseRowsToMetrics = (bboxes: BBox[]): ParsedRow[] => {
       const valItems = row.filter(b => b.x >= 500); // Value is on the right
 
       const dateStr = dateItems.map(d => d.text).join(' ');
-      const valueStr = valItems.map(v => v.text).join(' ').replace(/,/g, ''); // strip commas for parsing
 
-      const match = valueStr.match(/(\d+(\.\d+)?)/);
+      // strip time patterns (e.g. 08:00)
+      let cleanedValueStr = valItems.map(v => v.text).join(' ');
+      cleanedValueStr = cleanedValueStr.replace(/\b\d{1,2}:\d{2}\b/g, '');
+
+      // We need to distinguish between thousand separators (e.g., 2,573 kcal)
+      // and decimal separators (e.g., 75,5 kg).
+      // Heuristic: If comma is followed by exactly 3 digits and then end-of-number,
+      // it's likely a thousands separator (so strip it). Otherwise, it's a decimal (replace with dot).
+      cleanedValueStr = cleanedValueStr.replace(/,(\d{3})(?!\d)/g, '$1'); // thousands
+      cleanedValueStr = cleanedValueStr.replace(/,/g, '.'); // remaining are decimals
+
+      const valueStr = valItems.map(v => v.text).join(' ');
+
+      const match = cleanedValueStr.match(/\b(\d+(\.\d+)?)\b/);
       const value = match ? parseFloat(match[1]) : null;
 
-      if (dateStr.trim() && value !== null) {
+      if (dateStr.trim() && value !== null && !isNaN(value)) {
         results.push({
           dateStr: dateStr.trim(),
           valueStr: valueStr.trim(),

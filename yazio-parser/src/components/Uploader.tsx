@@ -2,15 +2,18 @@ import React, { useState } from 'react';
 import { UploadCloud, Loader2 } from 'lucide-react';
 import { extractTextWithBoundingBoxes } from '../services/imageProcessor';
 import { parseRowsToMetrics } from '../utils/parser';
-import type { ParsedRow } from '../utils/parser';
+import type { ParsedRow, MetricDataset } from '../utils/parser';
 
 interface UploaderProps {
-  onDataParsed: (data: ParsedRow[]) => void;
+  onDataParsed: (dataset: MetricDataset) => void;
 }
+
+const METRIC_OPTIONS = ['Калории', 'Вес', 'Белки', 'Жиры', 'Углеводы', 'Клетчатка'];
 
 export const Uploader: React.FC<UploaderProps> = ({ onDataParsed }) => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [previewData, setPreviewData] = useState<ParsedRow[]>([]);
+  const [metricName, setMetricName] = useState(METRIC_OPTIONS[0]);
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -41,8 +44,14 @@ export const Uploader: React.FC<UploaderProps> = ({ onDataParsed }) => {
   };
 
   const handleConfirm = () => {
-    onDataParsed(previewData);
+    onDataParsed({
+      id: crypto.randomUUID(),
+      name: metricName,
+      data: previewData,
+    });
     setPreviewData([]);
+    // Optionally reset metric name
+    setMetricName(METRIC_OPTIONS[0]);
   };
 
   return (
@@ -64,6 +73,19 @@ export const Uploader: React.FC<UploaderProps> = ({ onDataParsed }) => {
 
       {previewData.length > 0 && (
         <div className="mt-4">
+          <div className="flex flex-col mb-4">
+            <label className="text-sm text-zinc-400 mb-1">Название метрики (Metric Name):</label>
+            <select
+              value={metricName}
+              onChange={(e) => setMetricName(e.target.value)}
+              className="bg-zinc-800 text-zinc-100 px-3 py-2 rounded border border-zinc-700 outline-none max-w-xs"
+            >
+              {METRIC_OPTIONS.map(opt => (
+                <option key={opt} value={opt}>{opt}</option>
+              ))}
+            </select>
+          </div>
+
           <h3 className="text-lg font-semibold text-zinc-100 mb-2">Verify Extracted Data</h3>
           <div className="max-h-96 overflow-y-auto pr-2 space-y-2">
             {previewData.map((row, i) => (

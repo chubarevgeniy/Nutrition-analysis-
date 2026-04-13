@@ -1,16 +1,14 @@
 import { useState } from 'react';
 import { Uploader } from './components/Uploader';
 import { Dashboard } from './components/Dashboard';
-import type { ParsedRow } from './utils/parser';
+import type { MetricDataset } from './utils/parser';
 import { Activity } from 'lucide-react';
 
 function App() {
-  const [timelineData, setTimelineData] = useState<ParsedRow[]>([]);
+  const [datasets, setDatasets] = useState<MetricDataset[]>([]);
 
-  const handleDataParsed = (newData: ParsedRow[]) => {
-    // In a full app, we might merge data. Here we simply append or replace for now.
-    // Let's replace to keep it simple, or user can clear.
-    setTimelineData(newData);
+  const handleDataParsed = (newDataset: MetricDataset) => {
+    setDatasets((prev) => [...prev, newDataset]);
   };
 
   return (
@@ -36,7 +34,7 @@ function App() {
             <Uploader onDataParsed={handleDataParsed} />
           </section>
 
-          {timelineData.length > 0 && (
+          {datasets.length > 0 && (
             <section>
               <div className="mb-4 flex items-center justify-between">
                 <div>
@@ -44,13 +42,13 @@ function App() {
                   <p className="text-zinc-400 text-sm">Apply smoothing windows to understand the true trend of your metrics.</p>
                 </div>
                 <button
-                  onClick={() => setTimelineData([])}
+                  onClick={() => setDatasets([])}
                   className="px-3 py-1.5 bg-red-900/30 text-red-400 rounded border border-red-900 hover:bg-red-900/50 transition-colors text-sm"
                 >
                   Clear Data
                 </button>
               </div>
-              <Dashboard data={timelineData} />
+              <Dashboard datasets={datasets} />
             </section>
           )}
         </main>
