@@ -4,7 +4,7 @@ A locally-run, browser-based React tool to extract data from Yazio screenshots, 
 
 ## Deployment
 
-🚀 **[View the Live Application on GitHub Pages](https://<YOUR_GITHUB_USERNAME>.github.io/<YOUR_REPOSITORY_NAME>/)** *(Make sure to enable GitHub pages in your repo settings -> Pages -> Build and deployment: GitHub Actions)*
+🚀 **[View the Live Application on GitHub Pages](https://chubarevgeniy.github.io/Nutrition-analysys-/)** *(Make sure to enable GitHub pages in your repo settings -> Pages -> Build and deployment: GitHub Actions)*
 
 ## Development Setup
 
