@@ -12,12 +12,26 @@ export const extractTextWithBoundingBoxes = async (imageFile: File | string): Pr
   const worker = await Tesseract.createWorker('eng');
 
   try {
-    const { data } = await worker.recognize(imageFile);
+    const { data } = await worker.recognize(imageFile, {}, { blocks: true });
 
-    // We want word-level or line-level bounding boxes.
-    // In Tesseract.js, `data` has a `words` property that gives us word-level bounding boxes.
-    // Need to handle if data.words is absent.
-    const words = (data as any).words || [];
+    // We want word-level bounding boxes.
+    // Extract words from the blocks hierarchy.
+    const words: any[] = [];
+    if (data.blocks) {
+      for (const block of data.blocks) {
+        if (!block.paragraphs) continue;
+        for (const para of block.paragraphs) {
+          if (!para.lines) continue;
+          for (const line of para.lines) {
+            if (!line.words) continue;
+            for (const word of line.words) {
+              words.push(word);
+            }
+          }
+        }
+      }
+    }
+
     const bboxes: BBox[] = words.map((word: any) => ({
       text: word.text,
       x: word.bbox.x0,
